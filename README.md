@@ -17,11 +17,11 @@
   "name": "mcp-knowledge-base",
   "version": "1.0.0",
   "description": "基于本地文档的知识库问答MCP服务器",
-  "author": "Your Name",
+  "author": "yjy",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourname/mcp-knowledge-base.git"
+    "url": "https://github.com/ikungsjl/mcp-knowledge-base.git"
   },
   "keywords": ["mcp", "knowledge-base", "document-processing", "qa"],
   "main": "dist/index.js",
