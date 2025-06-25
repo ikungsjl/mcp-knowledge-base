@@ -1,6 +1,5 @@
 import fs from 'fs-extra';
 import path from 'path';
-import pdf from 'pdf-parse';
 import mammoth from 'mammoth';
 import * as cheerio from 'cheerio';
 import { createHash } from 'crypto';
@@ -63,29 +62,47 @@ export class DocumentProcessor {
   }
 
   private async extractPdfContent(filePath: string): Promise<string> {
-    const dataBuffer = await fs.readFile(filePath);
-    const data = await pdf(dataBuffer);
-    return data.text;
+    try {
+      // 动态导入pdf-parse以避免启动时的错误
+      const pdf = await import('pdf-parse');
+      const dataBuffer = await fs.readFile(filePath);
+      const data = await pdf.default(dataBuffer);
+      return data.text;
+    } catch (error) {
+      throw new Error(`PDF解析失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
   }
 
   private async extractDocxContent(filePath: string): Promise<string> {
-    const result = await mammoth.extractRawText({ path: filePath });
-    return result.value;
+    try {
+      const result = await mammoth.extractRawText({ path: filePath });
+      return result.value;
+    } catch (error) {
+      throw new Error(`DOCX解析失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
   }
 
   private async extractTxtContent(filePath: string): Promise<string> {
-    return await fs.readFile(filePath, 'utf-8');
+    try {
+      return await fs.readFile(filePath, 'utf-8');
+    } catch (error) {
+      throw new Error(`TXT文件读取失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
   }
 
   private async extractHtmlContent(filePath: string): Promise<string> {
-    const html = await fs.readFile(filePath, 'utf-8');
-    const $ = cheerio.load(html);
-    
-    // 移除脚本和样式标签
-    $('script, style').remove();
-    
-    // 提取文本内容
-    return $('body').text().trim();
+    try {
+      const html = await fs.readFile(filePath, 'utf-8');
+      const $ = cheerio.load(html);
+      
+      // 移除脚本和样式标签
+      $('script, style').remove();
+      
+      // 提取文本内容
+      return $('body').text().trim();
+    } catch (error) {
+      throw new Error(`HTML解析失败: ${error instanceof Error ? error.message : '未知错误'}`);
+    }
   }
 
   private extractTitle(filePath: string, content: string): string {

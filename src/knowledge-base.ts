@@ -73,7 +73,8 @@ export class KnowledgeBase {
         results.push({
           document: doc,
           score,
-          snippet
+          snippet,
+          fullContent: doc.content
         });
       }
     }
@@ -85,11 +86,12 @@ export class KnowledgeBase {
   }
 
   private tokenize(text: string): string[] {
-    // 简单的分词实现
+    // 改进分词实现，支持中文
     return text
       .replace(/[^\w\s\u4e00-\u9fff]/g, ' ')
       .split(/\s+/)
-      .filter(term => term.length > 0);
+      .filter(term => term.length > 0)
+      .map(term => term.toLowerCase());
   }
 
   private calculateSimilarity(queryTerms: string[], content: string): number {
@@ -97,11 +99,20 @@ export class KnowledgeBase {
     const contentTerms = this.tokenize(content);
     
     for (const queryTerm of queryTerms) {
-      const termCount = contentTerms.filter(term => term.includes(queryTerm) || queryTerm.includes(term)).length;
-      score += termCount / contentTerms.length;
+      // 改进相似度计算
+      const termMatches = contentTerms.filter(term => 
+        term.includes(queryTerm) || 
+        queryTerm.includes(term) ||
+        term === queryTerm
+      ).length;
+      
+      // 计算该查询词的得分
+      const termScore = termMatches / Math.max(contentTerms.length, 1);
+      score += termScore;
     }
     
-    return score / queryTerms.length;
+    // 返回平均得分，并降低阈值要求
+    return score / Math.max(queryTerms.length, 1);
   }
 
   private extractSnippet(content: string, queryTerms: string[], maxLength: number = 200): string {

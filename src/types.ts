@@ -13,6 +13,7 @@ export interface SearchResult {
   document: Document;
   score: number;
   snippet: string;
+  fullContent: string;
 }
 
 export interface KnowledgeBaseConfig {
